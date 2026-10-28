@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://redpulse:redpulse@db:5432/redpulse
+      - SECRET_KEY=change-me
+      - DEBUG=false
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: redpulse
+      POSTGRES_PASSWORD: redpulse
+      POSTGRES_DB: redpulse
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  web:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
